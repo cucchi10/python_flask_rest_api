@@ -37,7 +37,7 @@ def add_movie():
     try:
         title = request.json['title']
 
-        if title == "" and len(title) > 50:
+        if title == "" or len(title) > 50:
             return jsonify({'message':"check the input data, title needs 1 character as minimum and 50 character as maximum..."}), 404
 
         duration = int(request.json['duration'])
@@ -82,7 +82,7 @@ def update_movie(id):
 
         title = request.json['title']
 
-        if title == "" and len(title) > 50:
+        if title == "" or len(title) > 50:
             return jsonify({'message':"check the input data, title needs 1 character as minimum and 50 character as maximum..."}), 404
 
         duration = int(request.json['duration'])

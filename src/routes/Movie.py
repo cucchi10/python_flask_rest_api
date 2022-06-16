@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request
 import uuid
-import datetime
+
+from validations import *
 
 # Entities
 
@@ -34,32 +35,25 @@ def get_movie(id):
 
 @main.route('/add', methods=['POST'])
 def add_movie():
-    try:
-        title = request.json['title']
+    if (validation_title(request.json['title']) and validation_duration(request.json['duration']) and validation_released(request.json['released'])):
+        try:
+            id = uuid.uuid4()
+            title = request.json['title']
+            duration = int(request.json['duration'])
+            released = request.json['released']
+            
+            movie=Movie(str(id),title,duration,released)
 
-        if title == "" or len(title) > 50:
-            return jsonify({'message':"check the input data, title needs 1 character as minimum and 50 character as maximum..."}), 404
+            affected_rows = MovieModel.add_movie(movie)
+            if affected_rows == 1:
+                return jsonify(movie.id)
+            else:
+                return jsonify({'message':"Error on insert"}), 500
 
-        duration = int(request.json['duration'])
-
-        if len(str(duration)) <= 0 or len(str(duration)) > 4:
-            return jsonify({'message':"check the input data, duration needs 1 minute minimum and 999 minutes maximum..."}), 404
-
-        released = request.json['released']
-
-        # Valido Fecha, si da error va directo a except
-        datetime.datetime.strptime(released, '%Y-%m-%d')
-        
-        movie=Movie(str(id),title,duration,released)
-
-        affected_rows = MovieModel.add_movie(movie)
-        if affected_rows == 1:
-            return jsonify(movie.id)
-        else:
-            return jsonify({'message':"Error on insert"}), 500
-
-    except Exception as ex:
-        return jsonify({'message':str(ex)}), 500
+        except Exception as ex:
+            return jsonify({'message':str(ex)}), 500
+    else:
+        return jsonify({'mensaje': "Parameter Error..."}), 404
 
 
 @main.route('/delete/<id>', methods=['DELETE'])
@@ -78,30 +72,21 @@ def delete_movie(id):
 
 @main.route('/update/<id>', methods=['PUT'])
 def update_movie(id):
-    try:
+    if (validation_title(request.json['title']) and validation_duration(request.json['duration']) and validation_released(request.json['released'])):
+        try:
 
-        title = request.json['title']
+            title = request.json['title']
+            duration = int(request.json['duration'])
+            released = request.json['released']
 
-        if title == "" or len(title) > 50:
-            return jsonify({'message':"check the input data, title needs 1 character as minimum and 50 character as maximum..."}), 404
+            movie=Movie(id,title,duration,released)
 
-        duration = int(request.json['duration'])
-
-        if len(str(duration)) <= 0 or len(str(duration)) > 4:
-            return jsonify({'message':"check the input data, duration needs 1 minute minimum and 999 minutes maximum..."}), 404
-
-        released = request.json['released']
-
-        # Valido Fecha, si da error va directo a except
-        datetime.datetime.strptime(released, '%Y-%m-%d')
-
-
-        movie=Movie(id,title,duration,released)
-
-        affected_rows = MovieModel.update_movie(movie)
-        if affected_rows == 1:
-            return jsonify(movie.id)
-        else:
-            return jsonify({'message':"No movie updated"}), 404
-    except Exception as ex:
-        return jsonify({'message':str(ex)}), 500
+            affected_rows = MovieModel.update_movie(movie)
+            if affected_rows == 1:
+                return jsonify(movie.id)
+            else:
+                return jsonify({'message':"No movie updated"}), 404
+        except Exception as ex:
+            return jsonify({'message':str(ex)}), 500
+    else:
+        return jsonify({'mensaje': "Parameter Error..."}), 404
